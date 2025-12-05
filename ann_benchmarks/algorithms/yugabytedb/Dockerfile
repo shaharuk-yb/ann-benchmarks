@@ -1,0 +1,11 @@
+FROM ann-benchmarks
+
+ENV ANN_BENCHMARKS_YUGABYTE_HOST="<endpoint>"
+ENV ANN_BENCHMARKS_YUGABYTE_PORT="5433"
+ENV ANN_BENCHMARKS_YUGABYTE_USER="yugabyte"
+ENV ANN_BENCHMARKS_YUGABYTE_PASSWORD="<your-password>"
+ENV ANN_BENCHMARKS_YUGABYTE_DBNAME="yugabyte"
+
+RUN pip install psycopg[binary] pgvector
+
+
