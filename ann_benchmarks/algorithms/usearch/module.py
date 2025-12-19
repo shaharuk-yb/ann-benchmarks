@@ -19,6 +19,7 @@ class Usearch(BaseANN):
             metric=self._metric,
             connectivity=self._method_param["M"],
             expansion_add=self._method_param["efConstruction"],
+            expansion_search=self._ef,
         )
         # Add all vectors with their indices as keys
         keys = np.arange(len(X))
@@ -26,14 +27,15 @@ class Usearch(BaseANN):
 
     def set_query_arguments(self, ef):
         self._ef = ef
+        # Set the expansion factor for search on the index
+        self._index.expansion_search = ef
         self.name = "usearch (%s, ef: %d)" % (self._method_param, ef)
 
     def query(self, v, n):
         results = self._index.search(
             np.asarray(v, dtype=np.float32), 
             count=n, 
-            exact=False,
-            expansion=self._ef
+            exact=False
         )
         return results.keys
 
@@ -41,8 +43,7 @@ class Usearch(BaseANN):
         results = self._index.search(
             np.asarray(X, dtype=np.float32),
             count=n,
-            exact=False,
-            expansion=self._ef
+            exact=False
         )
         self.res = [r.keys for r in results]
 
