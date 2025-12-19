@@ -188,9 +188,6 @@ def build_index(algo: BaseANN, X_train: numpy.ndarray) -> Tuple:
     build_time = time.time() - t0
     index_size = algo.get_memory_usage() - memory_usage_before
 
-    print("Built index in", build_time)
-    print("Index size: ", index_size)
-
     return build_time, index_size
 
 
@@ -219,6 +216,11 @@ function"""
             algo.supports_prepared_queries()
 
         build_time, index_size = build_index(algo, X_train)
+
+        print(f"Algorithm: {definition.algorithm}")
+        print(f"Build arguments: {definition.arguments}")
+        print(f"Built index in {build_time}")
+        print(f"Index size: {index_size}")
 
         query_argument_groups = definition.query_argument_groups or [[]]  # Ensure at least one iteration
 
