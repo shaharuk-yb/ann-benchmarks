@@ -1,3 +1,5 @@
+import os
+import sys
 import time
 import pgvector.psycopg
 import psycopg
@@ -14,13 +16,13 @@ METRIC_PROPERTIES = {
     }
 }
 
-class YugabytePGVector(BaseANN):
+class YugabyteDB(BaseANN):
     def __init__(self, metric, method_param):
         self._metric = metric
         self._m = method_param['M']
         self._ef_construction = method_param['efConstruction']
         self._cur = None
-        self._ef_search = 10
+        self._ef_search = None
 
         if metric not in METRIC_PROPERTIES:
              raise RuntimeError(f"unknown metric {metric}")
@@ -67,12 +69,22 @@ class YugabytePGVector(BaseANN):
             print(f"Warning: Could not set storage plain (might be unsupported): {e}")
 
         print("Copying data...")
+        sys.stdout.flush()
+        num_rows = 0
+        insert_start_time_sec = time.time()
+
         with cur.copy("COPY items (id, embedding) FROM STDIN WITH (FORMAT BINARY)") as copy:
             copy.set_types(["int4", "vector"])
             for i, embedding in enumerate(X):
                 copy.write_row((i, embedding))
+                num_rows += 1
         
+        insert_elapsed_time_sec = time.time() - insert_start_time_sec
+        print("inserted {} rows into table in {:.3f} seconds".format(
+            num_rows, insert_elapsed_time_sec))
+
         print("Creating index...")
+        sys.stdout.flush()
         create_index_str = \
             "CREATE INDEX items_embedding_idx ON items USING hnsw (embedding %s) " \
             "WITH (m = %d, ef_construction = %d)" % (
@@ -117,4 +129,4 @@ class YugabytePGVector(BaseANN):
             return 0
 
     def __str__(self):
-        return f"YugabytePGVector(m={self._m}, ef_construction={self._ef_construction}, ef_search={self._ef_search})"
+        return f"YugabyteDB(m={self._m}, ef_construction={self._ef_construction}, ef_search={self._ef_search})"
