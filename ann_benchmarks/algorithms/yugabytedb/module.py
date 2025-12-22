@@ -32,9 +32,12 @@ class YugabyteDB(BaseANN):
         self._query = f"SELECT id FROM items ORDER BY embedding {props['distance_operator']} %s LIMIT %s"
 
     def fit(self, X):
+        # Get port from environment variable (set by entrypoint.sh for parallelism support)
+        ysql_port = int(os.environ.get("YSQL_PORT", "5433"))
+        
         conn_args = {
             "host": "127.0.0.1",
-            "port": 5433,
+            "port": ysql_port,
             "user": "ann",
             "password": "ann", 
             "dbname": "ann",
