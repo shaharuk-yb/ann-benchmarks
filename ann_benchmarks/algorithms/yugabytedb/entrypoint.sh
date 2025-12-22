@@ -42,6 +42,10 @@ export YSQL_PORT
 
 BIND_ADDR="0.0.0.0"
 
+# Flagfiles for additional gflags (located in /home/app/)
+MASTER_FLAGFILE="/home/app/masterflagfile"
+TSERVER_FLAGFILE="/home/app/tserverflagfile"
+
 # Check if YugabyteDB is already running on our assigned port
 if $YSQLSH -h 127.0.0.1 -p $YSQL_PORT -U yugabyte -c "SELECT 1;" &>/dev/null; then
     echo "YugabyteDB is already running on port $YSQL_PORT, skipping startup..."
@@ -57,6 +61,7 @@ else
         --ysql_num_shards_per_tserver=1 \
         --webserver_port=$MASTER_WEB_PORT \
         --webserver_interface=$BIND_ADDR \
+        --flagfile=$MASTER_FLAGFILE \
         > $DATA_DIR/logs/master.log 2>&1 &"
 
     echo "Waiting for yb-master to be ready..."
@@ -77,6 +82,7 @@ else
         --webserver_interface=$BIND_ADDR \
         --cql_proxy_bind_address=$BIND_ADDR:$CQL_PORT \
         --cql_proxy_webserver_port=$CQL_WEB_PORT \
+        --flagfile=$TSERVER_FLAGFILE \
         > $DATA_DIR/logs/tserver.log 2>&1 &"
 fi
 

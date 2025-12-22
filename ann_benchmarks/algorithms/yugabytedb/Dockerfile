@@ -28,4 +28,8 @@ COPY run_algorithm.py .
 COPY ann_benchmarks/algorithms/yugabytedb/entrypoint.sh .
 RUN chmod u+x entrypoint.sh
 
+# Copy gflag files for master and tserver
+COPY ann_benchmarks/algorithms/yugabytedb/masterflagfile .
+COPY ann_benchmarks/algorithms/yugabytedb/tserverflagfile .
+
 ENTRYPOINT ["/home/app/entrypoint.sh"]
