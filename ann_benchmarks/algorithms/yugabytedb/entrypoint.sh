@@ -8,23 +8,32 @@ YSQLSH="$YB_HOME/postgres/bin/ysqlsh"
 YB_MASTER="$YB_HOME/bin/yb-master"
 YB_TSERVER="$YB_HOME/bin/yb-tserver"
 
-# Create data directories
-DATA_DIR="/tmp/yb_data"
-mkdir -p $DATA_DIR/master $DATA_DIR/tserver $DATA_DIR/logs
-chown -R yugabyte:yugabyte $DATA_DIR
-
-# Use dynamic ports based on a hash of the container ID to avoid conflicts
+# Use dynamic ports and directories based on a hash of the container ID to avoid conflicts
 # when running with --parallelism > 1 and network_mode="host"
 CONTAINER_ID=$(cat /proc/self/cgroup 2>/dev/null | grep -o '[0-9a-f]\{12,\}' | head -1 || echo "$$")
+
+# Create unique data directory per container
+DATA_DIR="/tmp/yb_data_${CONTAINER_ID:0:12}"
+mkdir -p $DATA_DIR/master $DATA_DIR/tserver $DATA_DIR/logs
+chown -R yugabyte:yugabyte $DATA_DIR
 # Generate a port offset (0-999) from container ID to spread ports across range
 PORT_OFFSET=$(echo "$CONTAINER_ID" | cksum | awk '{print $1 % 1000}')
 
+# Master ports
 MASTER_RPC_PORT=$((7100 + PORT_OFFSET))
-TSERVER_RPC_PORT=$((9100 + PORT_OFFSET))
-YSQL_PORT=$((5433 + PORT_OFFSET))
 MASTER_WEB_PORT=$((7000 + PORT_OFFSET))
+
+# TServer ports
+TSERVER_RPC_PORT=$((9100 + PORT_OFFSET))
 TSERVER_WEB_PORT=$((9000 + PORT_OFFSET))
+
+# YSQL (PostgreSQL) ports
+YSQL_PORT=$((5433 + PORT_OFFSET))
+YSQL_WEB_PORT=$((13000 + PORT_OFFSET))
+
+# CQL (Cassandra) ports - even if not used, must be unique
 CQL_PORT=$((9042 + PORT_OFFSET))
+CQL_WEB_PORT=$((12000 + PORT_OFFSET))
 
 echo "Using ports: YSQL=$YSQL_PORT, Master RPC=$MASTER_RPC_PORT, TServer RPC=$TSERVER_RPC_PORT"
 
@@ -63,9 +72,11 @@ else
         --ysql_num_shards_per_tserver=1 \
         --start_pgsql_proxy \
         --pgsql_proxy_bind_address=$BIND_ADDR:$YSQL_PORT \
+        --pgsql_proxy_webserver_port=$YSQL_WEB_PORT \
         --webserver_port=$TSERVER_WEB_PORT \
         --webserver_interface=$BIND_ADDR \
         --cql_proxy_bind_address=$BIND_ADDR:$CQL_PORT \
+        --cql_proxy_webserver_port=$CQL_WEB_PORT \
         > $DATA_DIR/logs/tserver.log 2>&1 &"
 fi
 
