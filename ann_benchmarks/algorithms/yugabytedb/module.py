@@ -142,7 +142,8 @@ class YugabyteDB(BaseANN):
         if self._cur is None:
             return 0
         try:
-            self._cur.execute("SELECT pg_relation_size('items_embedding_idx')")
+            # YugabyteDB uses pg_table_size() for index sizes (pg_relation_size returns 0)
+            self._cur.execute("SELECT pg_table_size('items_embedding_idx')")
             return self._cur.fetchone()[0] / 1024
         except Exception:
             return 0
