@@ -9,21 +9,21 @@ float:
     run_groups:
       # Using f16 (half-precision) as recommended by usearch author
       M-4:
-        arg_groups: [{M: 4, efConstruction: 500, dtype: f16}]
-        args: {}
-        query_args: [[10, 20, 40, 80, 120, 200, 400, 600, 800]]
-      M-8:
-        arg_groups: [{M: 8, efConstruction: 500, dtype: f16}]
-        args: {}
-        query_args: [[10, 20, 40, 80, 120, 200, 400, 600, 800]]
-      M-12:
-        arg_groups: [{M: 12, efConstruction: 500, dtype: f16}]
-        args: {}
-        query_args: [[10, 20, 40, 80, 120, 200, 400, 600, 800]]
-      M-16:
-        arg_groups: [{M: 16, efConstruction: 500, dtype: f16}]
-        args: {}
-        query_args: [[10, 20, 40, 80, 120, 200, 400, 600, 800]]
+      #   arg_groups: [{M: 4, efConstruction: 500, dtype: f16}]
+      #   args: {}
+      #   query_args: [[10, 20, 40, 80, 120, 200, 400, 600, 800]]
+      # M-8:
+      #   arg_groups: [{M: 8, efConstruction: 500, dtype: f16}]
+      #   args: {}
+      #   query_args: [[10, 20, 40, 80, 120, 200, 400, 600, 800]]
+      # M-12:
+      #   arg_groups: [{M: 12, efConstruction: 500, dtype: f16}]
+      #   args: {}
+      #   query_args: [[10, 20, 40, 80, 120, 200, 400, 600, 800]]
+      # M-16:
+      #   arg_groups: [{M: 16, efConstruction: 500, dtype: f16}]
+      #   args: {}
+      #   query_args: [[10, 20, 40, 80, 120, 200, 400, 600, 800]]
       M-24:
         arg_groups: [{M: 24, efConstruction: 500, dtype: f16}]
         args: {}
