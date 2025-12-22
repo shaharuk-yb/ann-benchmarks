@@ -118,7 +118,7 @@ class YugabyteDB(BaseANN):
         for attempt in range(max_retries):
             try:
                 cur.execute(create_index_str)
-                print(f"Index created in {time.time() - start} seconds")
+                # print(f"Index created in {time.time() - start} seconds")
                 break
             except Exception as e:
                 if "Catalog Version Mismatch" in str(e) and attempt < max_retries - 1:
