@@ -53,8 +53,24 @@ class YugabyteDB(BaseANN):
         else:
              raise RuntimeError("Could not connect to YugabyteDB")
 
-        with conn.cursor() as cur:
-            cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
+        # Retry logic for CREATE EXTENSION to handle concurrent access with parallelism
+        max_extension_retries = 10
+        for attempt in range(max_extension_retries):
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
+                break
+            except psycopg.errors.SerializationFailure as e:
+                if attempt < max_extension_retries - 1:
+                    print(f"Extension creation conflict, retrying ({attempt + 1}/{max_extension_retries})...")
+                    time.sleep(1 + attempt * 0.5)  # Backoff
+                    continue
+                raise
+            except Exception as e:
+                # Extension might already exist, which is fine
+                if "already exists" in str(e).lower():
+                    break
+                raise
 
         pgvector.psycopg.register_vector(conn)
         cur = conn.cursor()
