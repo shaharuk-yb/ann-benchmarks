@@ -71,6 +71,16 @@ def queries_per_second(queries, attrs):
     return 1.0 / attrs["best_search_time"]
 
 
+def mean_latency(times):
+    """Calculate mean latency in milliseconds."""
+    return np.mean(times) * 1000.0
+
+
+def best_latency(queries, attrs):
+    """Calculate best (minimum) latency in milliseconds based on best_search_time."""
+    return attrs["best_search_time"] * 1000.0
+
+
 def percentile_50(times):
     return np.percentile(times, 50.0) * 1000.0
 
@@ -146,6 +156,18 @@ all_metrics = {
             true_distances, run_attrs
         ),  # noqa
         "worst": float("-inf"),
+    },
+    "latency": {
+        "description": "Mean latency (ms)",
+        "function": lambda true_distances, run_distances, metrics, times, run_attrs: mean_latency(times),  # noqa
+        "worst": float("inf"),
+    },
+    "best_latency": {
+        "description": "Best latency (ms)",
+        "function": lambda true_distances, run_distances, metrics, times, run_attrs: best_latency(
+            true_distances, run_attrs
+        ),  # noqa
+        "worst": float("inf"),
     },
     "p50": {
         "description": "Percentile 50 (millis)",

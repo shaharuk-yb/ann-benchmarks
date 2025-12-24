@@ -78,17 +78,21 @@ def calculate_qps(times: np.ndarray, attrs: Dict[str, Any]) -> Optional[float]:
     return None
 
 
-def calculate_percentiles(times: np.ndarray) -> Dict[str, float]:
+def calculate_latency_metrics(times: np.ndarray) -> Dict[str, float]:
     """
-    Calculate time percentiles in milliseconds.
+    Calculate latency metrics in milliseconds.
     
     Args:
         times: Array of query times in seconds
     
     Returns:
-        Dictionary with p50, p95, p99, p999 values in milliseconds
+        Dictionary with mean latency and percentile values in milliseconds
     """
     return {
+        'mean_latency_ms': np.mean(times) * 1000.0,
+        'min_latency_ms': np.min(times) * 1000.0,
+        'max_latency_ms': np.max(times) * 1000.0,
+        'std_latency_ms': np.std(times) * 1000.0,
         'p50_ms': np.percentile(times, 50.0) * 1000.0,
         'p95_ms': np.percentile(times, 95.0) * 1000.0,
         'p99_ms': np.percentile(times, 99.0) * 1000.0,
@@ -224,13 +228,13 @@ def calculate_metrics_for_file(filepath: Path,
     times = np.array(hdf5_file['times']) if 'times' in hdf5_file else None
     run_distances = np.array(hdf5_file['distances']) if 'distances' in hdf5_file else None
     
-    # Calculate QPS
+    # Calculate QPS and latency metrics
     if times is not None:
         result['qps'] = calculate_qps(times, properties)
         
-        # Calculate percentiles
-        percentiles = calculate_percentiles(times)
-        result.update(percentiles)
+        # Calculate latency metrics (mean, min, max, std, percentiles)
+        latency_metrics = calculate_latency_metrics(times)
+        result.update(latency_metrics)
         
         result['total_query_time_s'] = np.sum(times)
         result['num_queries'] = len(times)
@@ -404,10 +408,13 @@ def export_results(results_dir: str,
                 
                 # Print summary
                 qps = metrics.get('qps')
+                mean_latency = metrics.get('mean_latency_ms')
                 recall = metrics.get('recall_mean')
                 print(f"  Algorithm: {metrics['algorithm_name']}")
                 if qps:
                     print(f"  QPS: {qps:.2f}")
+                if mean_latency:
+                    print(f"  Mean Latency: {mean_latency:.3f} ms")
                 if recall is not None:
                     print(f"  Recall: {recall:.4f}")
                 else:
@@ -429,7 +436,8 @@ def export_results(results_dir: str,
         df = pd.DataFrame(all_metrics)
         
         # Reorder columns for better readability
-        priority_cols = ['algorithm', 'algorithm_name', 'recall_mean', 'qps', 
+        priority_cols = ['algorithm', 'algorithm_name', 'recall_mean', 'qps',
+                        'mean_latency_ms', 'min_latency_ms', 'max_latency_ms', 'std_latency_ms',
                         'p50_ms', 'p95_ms', 'p99_ms', 'p999_ms',
                         'build_time_s', 'index_size_kb', 'num_queries']
         other_cols = [c for c in df.columns if c not in priority_cols]
